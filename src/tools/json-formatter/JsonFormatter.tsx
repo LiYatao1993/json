@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIcon, CopyIcon, DownloadIcon, TrashIcon } from '../../components/icons'
 import JsonTree from './JsonTree'
 
 type IndentMode = '2' | '4' | 'tab'
+type Mode = 'format' | 'minify'
 
 const SAMPLE = `{
   "name": "DevTools",
@@ -36,24 +37,57 @@ interface ParseError {
   message: string
   line?: number
   column?: number
+  position?: number
 }
 
-/** 解析 JSON，失败时附带行列信息 */
+/** 解析 JSON，失败时附带行列与字符位置信息 */
 function parseJson(text: string): { data: unknown } | { error: ParseError } {
   try {
     return { data: JSON.parse(text) }
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
+    // 优先用引擎给出的行列，其次根据 position 自行推算
+    const lineColMatch = message.match(/line (\d+) column (\d+)/)
     const posMatch = message.match(/position (\d+)/)
     if (posMatch) {
-      const pos = Number(posMatch[1])
-      const before = text.slice(0, pos)
-      const line = before.split('\n').length
-      const column = pos - before.lastIndexOf('\n')
-      return { error: { message, line, column } }
+      const position = Number(posMatch[1])
+      const before = text.slice(0, position)
+      const line = lineColMatch
+        ? Number(lineColMatch[1])
+        : before.split('\n').length
+      const column = lineColMatch
+        ? Number(lineColMatch[2])
+        : position - before.lastIndexOf('\n')
+      return { error: { message, line, column, position } }
     }
     return { error: { message } }
   }
+}
+
+interface ProcessResult {
+  output: string
+  parsed: unknown
+  error: ParseError | null
+}
+
+/** 根据当前输入与选项计算输出，不直接操作状态，便于自动与手动复用 */
+function process(
+  input: string,
+  mode: Mode,
+  indent: IndentMode,
+  sortKeys: boolean,
+): ProcessResult {
+  if (!input.trim()) return { output: '', parsed: undefined, error: null }
+  const result = parseJson(input)
+  if ('error' in result) {
+    return { output: '', parsed: undefined, error: result.error }
+  }
+  const data = sortKeys ? sortKeysDeep(result.data) : result.data
+  const output =
+    mode === 'minify'
+      ? JSON.stringify(data)
+      : JSON.stringify(data, null, getIndent(indent))
+  return { output, parsed: data, error: null }
 }
 
 export default function JsonFormatter() {
@@ -62,37 +96,48 @@ export default function JsonFormatter() {
   const [error, setError] = useState<ParseError | null>(null)
   const [indent, setIndent] = useState<IndentMode>('2')
   const [sortKeys, setSortKeys] = useState(false)
+  const [mode, setMode] = useState<Mode>('format')
   const [view, setView] = useState<'text' | 'tree'>('text')
   const [parsed, setParsed] = useState<unknown>(undefined)
   const [copied, setCopied] = useState(false)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const run = (mode: 'format' | 'minify' | 'validate') => {
-    if (!input.trim()) {
-      setError({ message: '请输入 JSON 内容' })
-      setOutput('')
-      setParsed(undefined)
-      return
-    }
-    const result = parseJson(input)
-    if ('error' in result) {
+  // 输入或选项变化后，防抖自动格式化
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const result = process(input, mode, indent, sortKeys)
+      setOutput(result.output)
+      setParsed(result.parsed)
       setError(result.error)
-      setOutput('')
-      setParsed(undefined)
-      return
-    }
-    setError(null)
-    const data = sortKeys ? sortKeysDeep(result.data) : result.data
-    setParsed(data)
-    if (mode === 'validate') {
-      setOutput(JSON.stringify(data, null, getIndent(indent)))
-      return
-    }
-    if (mode === 'minify') {
-      setOutput(JSON.stringify(data))
-      return
-    }
-    setOutput(JSON.stringify(data, null, getIndent(indent)))
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [input, mode, indent, sortKeys])
+
+  // 点击按钮立即处理（无需等待防抖）
+  const apply = (nextMode: Mode) => {
+    setMode(nextMode)
+    const result = process(input, nextMode, indent, sortKeys)
+    setOutput(result.output)
+    setParsed(result.parsed)
+    setError(result.error)
   }
+
+  // 把光标定位到出错字符处
+  const jumpToError = () => {
+    if (error?.position == null || !inputRef.current) return
+    const el = inputRef.current
+    el.focus()
+    el.setSelectionRange(error.position, error.position + 1)
+  }
+
+  // 出错行的内容与插入符位置，用于直观展示错误位置
+  const errorSnippet = useMemo(() => {
+    if (!error?.line) return null
+    const lineText = input.split('\n')[error.line - 1] ?? ''
+    const prefix = `${error.line} | `
+    const caretPad = ' '.repeat(prefix.length + Math.max(0, (error.column ?? 1) - 1))
+    return { text: `${prefix}${lineText}`, caret: `${caretPad}^` }
+  }, [error, input])
 
   const handleCopy = async () => {
     if (!output) return
@@ -131,22 +176,38 @@ export default function JsonFormatter() {
 
   const btnBase =
     'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition disabled:opacity-50'
-  const btnPrimary = `${btnBase} bg-brand-600 text-white hover:bg-brand-700`
   const btnGhost = `${btnBase} border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800`
 
   return (
     <div className="space-y-4">
       {/* 操作栏 */}
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-        <button className={btnPrimary} onClick={() => run('format')}>
-          格式化
-        </button>
-        <button className={btnGhost} onClick={() => run('minify')}>
-          压缩
-        </button>
-        <button className={btnGhost} onClick={() => run('validate')}>
-          校验
-        </button>
+        <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-0.5 text-sm dark:bg-slate-800">
+          <button
+            onClick={() => apply('format')}
+            className={`rounded-md px-3 py-1 font-medium transition ${
+              mode === 'format'
+                ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-slate-500'
+            }`}
+          >
+            格式化
+          </button>
+          <button
+            onClick={() => apply('minify')}
+            className={`rounded-md px-3 py-1 font-medium transition ${
+              mode === 'minify'
+                ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-white'
+                : 'text-slate-500'
+            }`}
+          >
+            压缩
+          </button>
+        </div>
+
+        <span className="hidden text-xs text-slate-400 sm:inline">
+          输入后自动处理
+        </span>
 
         <div className="mx-1 h-6 w-px bg-slate-200 dark:bg-slate-700" />
 
@@ -190,12 +251,30 @@ export default function JsonFormatter() {
 
       {/* 错误提示 */}
       {error && (
-        <div className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-2 text-sm text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300">
-          解析失败：{error.message}
-          {error.line && (
-            <span className="ml-1 font-medium">
-              （第 {error.line} 行，第 {error.column} 列）
-            </span>
+        <div
+          onClick={jumpToError}
+          className={`rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-300 ${
+            error.position != null ? 'cursor-pointer' : ''
+          }`}
+          title={error.position != null ? '点击定位到出错位置' : undefined}
+        >
+          <div className="flex flex-wrap items-center gap-x-2 font-medium">
+            <span>JSON 解析失败</span>
+            {error.line && (
+              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-xs dark:bg-rose-500/20">
+                第 {error.line} 行，第 {error.column} 列
+              </span>
+            )}
+          </div>
+          <div className="mt-1 text-rose-600/90 dark:text-rose-300/90">
+            {error.message}
+          </div>
+          {errorSnippet && (
+            <pre className="mt-2 overflow-x-auto rounded-md bg-rose-100/60 p-2 font-mono text-xs leading-relaxed text-rose-800 dark:bg-rose-500/10 dark:text-rose-200">
+              {errorSnippet.text}
+              {'\n'}
+              <span className="text-rose-500">{errorSnippet.caret}</span>
+            </pre>
           )}
         </div>
       )}
@@ -207,10 +286,11 @@ export default function JsonFormatter() {
             输入
           </div>
           <textarea
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             spellCheck={false}
-            placeholder="在此粘贴 JSON…"
+            placeholder="在此粘贴 JSON，将自动格式化…"
             className="h-[460px] w-full resize-none rounded-b-xl bg-transparent p-4 font-mono text-[13px] leading-relaxed outline-none"
           />
         </div>

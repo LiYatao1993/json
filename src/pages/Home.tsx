@@ -5,8 +5,8 @@ export default function Home() {
   const grouped = getToolsByCategory()
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <section className="mb-10 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 px-6 py-10 text-white shadow-lg sm:px-10">
+    <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
+      <section className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 px-6 py-10 text-white shadow-lg sm:px-10 sm:py-12">
         <h1 className="text-2xl font-bold sm:text-3xl">开发者在线工具集</h1>
         <p className="mt-2 max-w-2xl text-sm text-white/85 sm:text-base">
           一站式聚合各类实用工具，全部在浏览器本地运行，输入数据不会上传到任何服务器。
@@ -15,11 +15,14 @@ export default function Home() {
       </section>
 
       {Object.entries(grouped).map(([category, list]) => (
-        <div key={category} className="mb-10">
-          <h2 className="mb-4 text-lg font-semibold text-slate-700 dark:text-slate-200">
+        <div key={category} className="mb-8">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-700 dark:text-slate-200">
             {category}
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-400 dark:bg-slate-800">
+              {list.length}
+            </span>
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {list.map((tool) => {
               const Icon = tool.icon
               return (
