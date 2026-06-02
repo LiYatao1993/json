@@ -14,7 +14,17 @@ const STORAGE_KEY = 'pu-last-shown'
  */
 export default function Popunder() {
   useEffect(() => {
-    const handleClick = () => {
+    const handleClick = (e: MouseEvent) => {
+      // 忽略按钮/链接/输入等交互元素，避免抢占焦点导致复制等操作失效
+      const target = e.target as HTMLElement | null
+      if (
+        target?.closest(
+          'button, a, input, textarea, select, label, [role="button"]',
+        )
+      ) {
+        return
+      }
+
       const last = Number(localStorage.getItem(STORAGE_KEY) || '0')
       if (Date.now() - last < COOLDOWN_MS) return
       localStorage.setItem(STORAGE_KEY, String(Date.now()))

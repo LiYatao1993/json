@@ -102,6 +102,42 @@ export function MenuIcon(props: IconProps) {
   )
 }
 
+export function SuccessIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m8 12 3 3 5-6" />
+    </svg>
+  )
+}
+
+export function ErrorIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m15 9-6 6M9 9l6 6" />
+    </svg>
+  )
+}
+
+export function InfoIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 11v5M12 8h.01" />
+    </svg>
+  )
+}
+
+export function WarningIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4M12 17h.01" />
+    </svg>
+  )
+}
+
 export function KeyIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

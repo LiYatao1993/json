@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CheckIcon, CopyIcon, RefreshIcon } from '../../components/icons'
+import { useToast } from '../../components/Toast'
+import { copyText } from '../../utils/clipboard'
 import { WORDS } from './words'
 
 type PwType = 'random' | 'memorable' | 'pin'
@@ -114,6 +116,7 @@ export default function PasswordGenerator() {
 
   const [password, setPassword] = useState('')
   const [copied, setCopied] = useState(false)
+  const toast = useToast()
 
   const generate = useCallback(() => {
     if (type === 'random') setPassword(genRandom(length, useNumbers, useSymbols))
@@ -137,9 +140,19 @@ export default function PasswordGenerator() {
 
   const handleCopy = async () => {
     if (!password) return
-    await navigator.clipboard.writeText(password)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    const ok = await copyText(password)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+      toast.success('密码已复制到剪贴板')
+    } else {
+      toast.error('复制失败，请手动选择复制')
+    }
+  }
+
+  const handleRefresh = () => {
+    generate()
+    toast.success('已生成新密码')
   }
 
   const sliderClass =
@@ -286,7 +299,7 @@ export default function PasswordGenerator() {
             )}
           </button>
           <button
-            onClick={generate}
+            onClick={handleRefresh}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
           >
             <RefreshIcon className="h-4 w-4" />

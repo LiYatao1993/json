@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIcon, CopyIcon, DownloadIcon, TrashIcon } from '../../components/icons'
+import { useToast } from '../../components/Toast'
+import { copyText } from '../../utils/clipboard'
 import JsonTree from './JsonTree'
 
 type IndentMode = '2' | '4' | 'tab'
@@ -101,6 +103,7 @@ export default function JsonFormatter() {
   const [parsed, setParsed] = useState<unknown>(undefined)
   const [copied, setCopied] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const toast = useToast()
 
   // 输入或选项变化后，防抖自动格式化
   useEffect(() => {
@@ -120,6 +123,13 @@ export default function JsonFormatter() {
     setOutput(result.output)
     setParsed(result.parsed)
     setError(result.error)
+    if (!input.trim()) {
+      toast.warning('请先输入 JSON 内容')
+    } else if (result.error) {
+      toast.error('JSON 解析失败')
+    } else {
+      toast.success(nextMode === 'minify' ? '压缩成功' : '格式化成功')
+    }
   }
 
   // 把光标定位到出错字符处
@@ -140,14 +150,25 @@ export default function JsonFormatter() {
   }, [error, input])
 
   const handleCopy = async () => {
-    if (!output) return
-    await navigator.clipboard.writeText(output)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    if (!output) {
+      toast.warning('暂无可复制的内容')
+      return
+    }
+    const ok = await copyText(output)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+      toast.success('复制成功')
+    } else {
+      toast.error('复制失败，请手动选择复制')
+    }
   }
 
   const handleDownload = () => {
-    if (!output) return
+    if (!output) {
+      toast.warning('暂无可下载的内容')
+      return
+    }
     const blob = new Blob([output], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -155,6 +176,7 @@ export default function JsonFormatter() {
     a.download = 'formatted.json'
     a.click()
     URL.revokeObjectURL(url)
+    toast.success('已下载 formatted.json')
   }
 
   const handleClear = () => {
@@ -162,6 +184,12 @@ export default function JsonFormatter() {
     setOutput('')
     setError(null)
     setParsed(undefined)
+    toast.info('已清空')
+  }
+
+  const handleSample = () => {
+    setInput(SAMPLE)
+    toast.info('已填入示例数据')
   }
 
   const stats = useMemo(() => {
@@ -235,11 +263,7 @@ export default function JsonFormatter() {
         </label>
 
         <div className="ml-auto flex items-center gap-2">
-          <button
-            className={btnGhost}
-            onClick={() => setInput(SAMPLE)}
-            title="填入示例数据"
-          >
+          <button className={btnGhost} onClick={handleSample} title="填入示例数据">
             示例
           </button>
           <button className={btnGhost} onClick={handleClear}>
