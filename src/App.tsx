@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
+import Popunder from './components/Popunder'
 import Home from './pages/Home'
 import ToolPage from './pages/ToolPage'
 import NotFound from './pages/NotFound'
@@ -7,6 +8,7 @@ import NotFound from './pages/NotFound'
 export default function App() {
   return (
     <BrowserRouter>
+      <Popunder />
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
