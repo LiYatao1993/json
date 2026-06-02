@@ -5,7 +5,7 @@ export default function Home() {
   const grouped = getToolsByCategory()
 
   return (
-    <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
+    <div className="h-full w-full overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
       <section className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 px-6 py-10 text-white shadow-lg sm:px-10 sm:py-12">
         <h1 className="text-2xl font-bold sm:text-3xl">开发者在线工具集</h1>
         <p className="mt-2 max-w-2xl text-sm text-white/85 sm:text-base">

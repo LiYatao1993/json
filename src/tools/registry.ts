@@ -1,9 +1,9 @@
 import { lazy } from 'react'
 import type { ComponentType, LazyExoticComponent } from 'react'
 import type { SVGProps } from 'react'
-import { BracesIcon } from '../components/icons'
+import { BracesIcon, KeyIcon } from '../components/icons'
 
-export type ToolCategory = '编码 / 格式' | '文本处理' | '其它'
+export type ToolCategory = '编码 / 格式' | '文本处理' | '生成 / 安全' | '其它'
 
 export interface Tool {
   /** 唯一标识，同时用于路由路径 /tools/:id */
@@ -38,6 +38,15 @@ export const tools: Tool[] = [
     keywords: ['json', 'format', 'beautify', 'minify', '格式化', '压缩', '校验'],
     icon: BracesIcon,
     component: lazy(() => import('./json-formatter/JsonFormatter')),
+  },
+  {
+    id: 'password-generator',
+    name: '密码生成器',
+    description: '生成随机、易记或 PIN 类型的强密码，可调长度与字符集。',
+    category: '生成 / 安全',
+    keywords: ['password', 'generator', '密码', '生成', 'pin', '随机'],
+    icon: KeyIcon,
+    component: lazy(() => import('./password-generator/PasswordGenerator')),
   },
 ]
 

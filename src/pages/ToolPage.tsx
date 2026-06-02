@@ -12,8 +12,8 @@ export default function ToolPage() {
   const ToolComponent = tool.component
 
   return (
-    <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mb-5 flex items-center gap-3">
+    <div className="flex h-full w-full flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mb-5 flex shrink-0 items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
           <tool.icon className="h-5 w-5" />
         </span>
@@ -25,15 +25,17 @@ export default function ToolPage() {
         </div>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="py-20 text-center text-sm text-slate-400">
-            加载中…
-          </div>
-        }
-      >
-        <ToolComponent />
-      </Suspense>
+      <div className="min-h-0 flex-1">
+        <Suspense
+          fallback={
+            <div className="py-20 text-center text-sm text-slate-400">
+              加载中…
+            </div>
+          }
+        >
+          <ToolComponent />
+        </Suspense>
+      </div>
     </div>
   )
 }
