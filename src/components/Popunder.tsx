@@ -4,7 +4,7 @@ const POPUNDER_URL =
   'https://idealistic-revenue.com/b.3aVD0rPC3Np/vsb/mQVcJUZIDm0R3BM/TQAEy/Mlj-El3vLMTYcgxtMjD/IdyvM/jmES'
 
 // 同一浏览器两次弹出之间的最小间隔，避免过度打扰
-const COOLDOWN_MS = 6 * 60 * 60 * 1000
+const COOLDOWN_MS = 1 * 60 * 60 * 1000
 const STORAGE_KEY = 'pu-last-shown'
 
 /**
