@@ -5,6 +5,7 @@ import {
   BracesIcon,
   ClockIcon,
   CodeIcon,
+  CoffeeIcon,
   KeyIcon,
   LinkIcon,
   QrIcon,
@@ -60,6 +61,15 @@ export const tools: Tool[] = [
     keywords: ['base64', 'encode', 'decode', '编码', '解码', '图片'],
     icon: CodeIcon,
     component: lazy(() => import('./base64/Base64Tool')),
+  },
+  {
+    id: 'json-to-java',
+    name: 'JSON 转 Java 实体',
+    description: '把 JSON 生成 Java 实体类，支持 Lombok、包装类型与 @JsonProperty。',
+    category: '转换 / 计算',
+    keywords: ['json', 'java', 'pojo', 'entity', '实体', '转换', 'lombok'],
+    icon: CoffeeIcon,
+    component: lazy(() => import('./json-to-java/JsonToJava')),
   },
   {
     id: 'url-codec',
