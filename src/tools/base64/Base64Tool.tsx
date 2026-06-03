@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CopyIcon } from '../../components/icons'
+import { CopyIcon, DownloadIcon } from '../../components/icons'
 import { useToast } from '../../components/Toast'
 import { copyText } from '../../utils/clipboard'
 
@@ -18,11 +18,30 @@ function base64ToUtf8(b64: string): string {
   return new TextDecoder().decode(bytes)
 }
 
+// 根据 Base64 前缀推断图片类型，拼成可渲染的 Data URL
+function toImageSrc(raw: string): string {
+  const s = raw.trim().replace(/\s/g, '')
+  if (!s) return ''
+  if (s.startsWith('data:')) return s
+  let mime = 'image/png'
+  if (s.startsWith('/9j/')) mime = 'image/jpeg'
+  else if (s.startsWith('iVBOR')) mime = 'image/png'
+  else if (s.startsWith('R0lGOD')) mime = 'image/gif'
+  else if (s.startsWith('UklGR')) mime = 'image/webp'
+  else if (s.startsWith('PHN2Zy') || s.startsWith('PD94')) mime = 'image/svg+xml'
+  else if (s.startsWith('Qk')) mime = 'image/bmp'
+  return `data:${mime};base64,${s}`
+}
+
 export default function Base64Tool() {
   const [mode, setMode] = useState<Mode>('encode')
   const [input, setInput] = useState('')
   const [imageBase64, setImageBase64] = useState('')
+  const [b64ImgInput, setB64ImgInput] = useState('')
+  const [imgError, setImgError] = useState(false)
   const toast = useToast()
+
+  const b64ImgSrc = useMemo(() => toImageSrc(b64ImgInput), [b64ImgInput])
 
   const { output, error } = useMemo(() => {
     if (!input.trim()) return { output: '', error: '' }
@@ -50,6 +69,19 @@ export default function Base64Tool() {
     if (!text) return
     const ok = await copyText(text)
     toast[ok ? 'success' : 'error'](ok ? '复制成功' : '复制失败')
+  }
+
+  const downloadImage = () => {
+    if (!b64ImgSrc || imgError) return
+    const ext = (b64ImgSrc.match(/^data:image\/(\w+)/)?.[1] || 'png').replace(
+      'svg+xml',
+      'svg',
+    )
+    const a = document.createElement('a')
+    a.href = b64ImgSrc
+    a.download = `image.${ext}`
+    a.click()
+    toast.success(`已下载 image.${ext}`)
   }
 
   const card =
@@ -139,6 +171,50 @@ export default function Base64Tool() {
               <pre className="max-h-32 overflow-auto break-all rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs dark:border-slate-700 dark:bg-slate-800">
                 {imageBase64}
               </pre>
+            </div>
+          )}
+        </div>
+
+        {/* Base64 转图片 */}
+        <div className={card}>
+          <h3 className="mb-3 text-sm font-medium text-slate-600 dark:text-slate-300">
+            Base64 转图片
+          </h3>
+          <textarea
+            value={b64ImgInput}
+            onChange={(e) => {
+              setB64ImgInput(e.target.value)
+              setImgError(false)
+            }}
+            spellCheck={false}
+            placeholder="粘贴图片的 Base64 或 Data URL（自动识别 png/jpeg/gif/webp/svg…）"
+            className="h-28 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-800"
+          />
+          {b64ImgSrc && (
+            <div className="mt-3 space-y-2">
+              {imgError ? (
+                <p className="text-sm text-rose-500">
+                  无法解析为图片，请检查 Base64 内容是否完整
+                </p>
+              ) : (
+                <>
+                  <img
+                    src={b64ImgSrc}
+                    alt="预览"
+                    onError={() => setImgError(true)}
+                    className="max-h-48 rounded-lg border border-slate-200 dark:border-slate-700"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      onClick={downloadImage}
+                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    >
+                      <DownloadIcon className="h-4 w-4" />
+                      下载图片
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

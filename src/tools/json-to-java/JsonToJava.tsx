@@ -101,7 +101,8 @@ export default function JsonToJava() {
             onChange={(e) => setJsonProperty(e.target.checked)}
             className="h-4 w-4 accent-brand-600"
           />
-          @JsonProperty
+          属性注解
+          <span className="text-xs text-slate-400">(JsonProperty/JSONField)</span>
         </label>
         <button
           onClick={() => setInput(SAMPLE)}

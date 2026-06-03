@@ -110,8 +110,10 @@ function render(classes: ClassDef[], opts: JavaOptions, rootType: string): strin
   const imports: string[] = []
   if (usesList) imports.push('import java.util.List;')
   if (opts.useLombok) imports.push('import lombok.Data;')
-  if (opts.jsonProperty)
+  if (opts.jsonProperty) {
     imports.push('import com.fasterxml.jackson.annotation.JsonProperty;')
+    imports.push('import com.alibaba.fastjson.annotation.JSONField;')
+  }
 
   const blocks = classes.map((def) => renderClass(def, opts))
 
@@ -129,8 +131,9 @@ function renderClass(def: ClassDef, opts: JavaOptions): string {
   lines.push(`public class ${def.name} {`)
 
   for (const f of def.fields) {
-    if (opts.jsonProperty && f.javaName !== f.jsonName) {
+    if (opts.jsonProperty) {
       lines.push(`    @JsonProperty("${f.jsonName}")`)
+      lines.push(`    @JSONField(name = "${f.jsonName}")`)
     }
     lines.push(`    private ${f.type} ${f.javaName};`)
   }
