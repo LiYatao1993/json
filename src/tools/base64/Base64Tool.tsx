@@ -33,7 +33,16 @@ function toImageSrc(raw: string): string {
   return `data:${mime};base64,${s}`
 }
 
+type Tab = 'text' | 'imgEncode' | 'imgDecode'
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'text', label: '文本编解码' },
+  { id: 'imgEncode', label: '图片转 Base64' },
+  { id: 'imgDecode', label: 'Base64 转图片' },
+]
+
 export default function Base64Tool() {
+  const [tab, setTab] = useState<Tab>('text')
   const [mode, setMode] = useState<Mode>('encode')
   const [input, setInput] = useState('')
   const [imageBase64, setImageBase64] = useState('')
@@ -90,134 +99,156 @@ export default function Base64Tool() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="mx-auto max-w-3xl space-y-4 pb-6">
-        {/* 文本编解码 */}
-        <div className={card}>
-          <div className="mb-3 flex items-center gap-1 rounded-lg bg-slate-100 p-0.5 text-sm dark:bg-slate-800 sm:w-fit">
-            {(['encode', 'decode'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`flex-1 rounded-md px-4 py-1.5 font-medium transition sm:flex-none ${
-                  mode === m
-                    ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-white'
-                    : 'text-slate-500'
-                }`}
-              >
-                {m === 'encode' ? '编码' : '解码'}
-              </button>
-            ))}
-          </div>
-
-          <label className="mb-1 block text-sm text-slate-500">
-            {mode === 'encode' ? '原文' : 'Base64'}
-          </label>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            spellCheck={false}
-            placeholder={mode === 'encode' ? '输入要编码的文本…' : '输入要解码的 Base64…'}
-            className="h-32 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-800"
-          />
-
-          <div className="mt-3 flex items-center justify-between">
-            <label className="text-sm text-slate-500">
-              {mode === 'encode' ? 'Base64' : '原文'}
-            </label>
+        {/* 顶部 Tab */}
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-sm dark:bg-slate-800">
+          {TABS.map((t) => (
             <button
-              onClick={() => copy(output)}
-              disabled={!output}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 disabled:opacity-40 dark:hover:bg-slate-800"
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`rounded-lg py-2 font-medium transition ${
+                tab === t.id
+                  ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-white'
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
             >
-              <CopyIcon className="h-4 w-4" />
-              复制
+              {t.label}
             </button>
-          </div>
-          <pre className="min-h-[80px] w-full overflow-auto whitespace-pre-wrap break-all rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm dark:border-slate-700 dark:bg-slate-800">
-            {error ? (
-              <span className="text-rose-500">{error}</span>
-            ) : (
-              output || <span className="text-slate-400">结果…</span>
-            )}
-          </pre>
+          ))}
         </div>
+
+        {/* 文本编解码 */}
+        {tab === 'text' && (
+          <div className={card}>
+            <div className="mb-3 flex items-center gap-1 rounded-lg bg-slate-100 p-0.5 text-sm dark:bg-slate-800 sm:w-fit">
+              {(['encode', 'decode'] as Mode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setMode(m)}
+                  className={`flex-1 rounded-md px-4 py-1.5 font-medium transition sm:flex-none ${
+                    mode === m
+                      ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-700 dark:text-white'
+                      : 'text-slate-500'
+                  }`}
+                >
+                  {m === 'encode' ? '编码' : '解码'}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm text-slate-500">
+                  {mode === 'encode' ? '原文' : 'Base64'}
+                </label>
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  spellCheck={false}
+                  placeholder={mode === 'encode' ? '输入要编码的文本…' : '输入要解码的 Base64…'}
+                  className="h-48 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+              <div>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-sm text-slate-500">
+                    {mode === 'encode' ? 'Base64' : '原文'}
+                  </label>
+                  <button
+                    onClick={() => copy(output)}
+                    disabled={!output}
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 disabled:opacity-40 dark:hover:bg-slate-800"
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                    复制
+                  </button>
+                </div>
+                <pre className="h-48 w-full overflow-auto whitespace-pre-wrap break-all rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-sm dark:border-slate-700 dark:bg-slate-800">
+                  {error ? (
+                    <span className="text-rose-500">{error}</span>
+                  ) : (
+                    output || <span className="text-slate-400">结果…</span>
+                  )}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 图片转 Base64 */}
-        <div className={card}>
-          <h3 className="mb-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-            图片转 Base64（Data URL）
-          </h3>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImage(e.target.files?.[0])}
-            className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/15 dark:file:text-brand-300"
-          />
-          {imageBase64 && (
-            <div className="mt-3 space-y-2">
-              <img
-                src={imageBase64}
-                alt="预览"
-                className="max-h-40 rounded-lg border border-slate-200 dark:border-slate-700"
-              />
-              <div className="flex justify-end">
-                <button
-                  onClick={() => copy(imageBase64)}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  <CopyIcon className="h-4 w-4" />
-                  复制 Data URL
-                </button>
+        {tab === 'imgEncode' && (
+          <div className={card}>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImage(e.target.files?.[0])}
+              className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-500/15 dark:file:text-brand-300"
+            />
+            {imageBase64 && (
+              <div className="mt-3 space-y-2">
+                <img
+                  src={imageBase64}
+                  alt="预览"
+                  className="max-h-40 rounded-lg border border-slate-200 dark:border-slate-700"
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => copy(imageBase64)}
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                    复制 Data URL
+                  </button>
+                </div>
+                <pre className="max-h-40 overflow-auto break-all rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs dark:border-slate-700 dark:bg-slate-800">
+                  {imageBase64}
+                </pre>
               </div>
-              <pre className="max-h-32 overflow-auto break-all rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs dark:border-slate-700 dark:bg-slate-800">
-                {imageBase64}
-              </pre>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Base64 转图片 */}
-        <div className={card}>
-          <h3 className="mb-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-            Base64 转图片
-          </h3>
-          <textarea
-            value={b64ImgInput}
-            onChange={(e) => {
-              setB64ImgInput(e.target.value)
-              setImgError(false)
-            }}
-            spellCheck={false}
-            placeholder="粘贴图片的 Base64 或 Data URL（自动识别 png/jpeg/gif/webp/svg…）"
-            className="h-28 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-800"
-          />
-          {b64ImgSrc && (
-            <div className="mt-3 space-y-2">
-              {imgError ? (
-                <p className="text-sm text-rose-500">
-                  无法解析为图片，请检查 Base64 内容是否完整
-                </p>
-              ) : (
-                <>
-                  <img
-                    src={b64ImgSrc}
-                    alt="预览"
-                    onError={() => setImgError(true)}
-                    className="max-h-48 rounded-lg border border-slate-200 dark:border-slate-700"
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      onClick={downloadImage}
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                      <DownloadIcon className="h-4 w-4" />
-                      下载图片
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        {tab === 'imgDecode' && (
+          <div className={card}>
+            <textarea
+              value={b64ImgInput}
+              onChange={(e) => {
+                setB64ImgInput(e.target.value)
+                setImgError(false)
+              }}
+              spellCheck={false}
+              placeholder="粘贴图片的 Base64 或 Data URL（自动识别 png/jpeg/gif/webp/svg…）"
+              className="h-32 w-full resize-y rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-800"
+            />
+            {b64ImgSrc && (
+              <div className="mt-3 space-y-2">
+                {imgError ? (
+                  <p className="text-sm text-rose-500">
+                    无法解析为图片，请检查 Base64 内容是否完整
+                  </p>
+                ) : (
+                  <>
+                    <img
+                      src={b64ImgSrc}
+                      alt="预览"
+                      onError={() => setImgError(true)}
+                      className="max-h-48 rounded-lg border border-slate-200 dark:border-slate-700"
+                    />
+                    <div className="flex justify-end">
+                      <button
+                        onClick={downloadImage}
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <DownloadIcon className="h-4 w-4" />
+                        下载图片
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -1,8 +1,10 @@
+export type AnnotationType = 'none' | 'jackson' | 'fastjson'
+
 export interface JavaOptions {
   rootClassName: string
   useLombok: boolean
   useWrapper: boolean
-  jsonProperty: boolean
+  annotation: AnnotationType
 }
 
 interface Field {
@@ -29,6 +31,15 @@ function toPascal(key: string): string {
 function toCamel(key: string): string {
   const p = toPascal(key)
   return p.charAt(0).toLowerCase() + p.slice(1)
+}
+
+// 驼峰 / 任意分隔 转下划线小写，如 conversationId -> conversation_id
+function toSnake(key: string): string {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .toLowerCase()
+    .replace(/^_+|_+$/g, '')
 }
 
 function singular(name: string): string {
@@ -110,10 +121,10 @@ function render(classes: ClassDef[], opts: JavaOptions, rootType: string): strin
   const imports: string[] = []
   if (usesList) imports.push('import java.util.List;')
   if (opts.useLombok) imports.push('import lombok.Data;')
-  if (opts.jsonProperty) {
+  if (opts.annotation === 'jackson')
     imports.push('import com.fasterxml.jackson.annotation.JsonProperty;')
+  else if (opts.annotation === 'fastjson')
     imports.push('import com.alibaba.fastjson.annotation.JSONField;')
-  }
 
   const blocks = classes.map((def) => renderClass(def, opts))
 
@@ -131,9 +142,14 @@ function renderClass(def: ClassDef, opts: JavaOptions): string {
   lines.push(`public class ${def.name} {`)
 
   for (const f of def.fields) {
-    if (opts.jsonProperty) {
-      lines.push(`    @JsonProperty("${f.jsonName}")`)
-      lines.push(`    @JSONField(name = "${f.jsonName}")`)
+    const snake = toSnake(f.jsonName)
+    // 仅在序列化名与驼峰字段名不一致时添加注解，避免冗余
+    if (opts.annotation !== 'none' && snake !== f.javaName) {
+      if (opts.annotation === 'jackson') {
+        lines.push(`    @JsonProperty("${snake}")`)
+      } else {
+        lines.push(`    @JSONField(name = "${snake}")`)
+      }
     }
     lines.push(`    private ${f.type} ${f.javaName};`)
   }

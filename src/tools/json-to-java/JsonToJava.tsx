@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { CopyIcon, DownloadIcon } from '../../components/icons'
 import { useToast } from '../../components/Toast'
 import { copyText } from '../../utils/clipboard'
-import { jsonToJava, type JavaOptions } from './converter'
+import { jsonToJava, type AnnotationType, type JavaOptions } from './converter'
 
 const SAMPLE = `{
   "userId": 1024,
@@ -18,7 +18,7 @@ export default function JsonToJava() {
   const [rootClassName, setRootClassName] = useState('Root')
   const [useLombok, setUseLombok] = useState(true)
   const [useWrapper, setUseWrapper] = useState(true)
-  const [jsonProperty, setJsonProperty] = useState(false)
+  const [annotation, setAnnotation] = useState<AnnotationType>('none')
   const toast = useToast()
 
   const { output, error } = useMemo(() => {
@@ -27,7 +27,7 @@ export default function JsonToJava() {
       rootClassName,
       useLombok,
       useWrapper,
-      jsonProperty,
+      annotation,
     }
     try {
       return { output: jsonToJava(input, opts), error: '' }
@@ -37,7 +37,7 @@ export default function JsonToJava() {
         error: e instanceof Error ? e.message : 'JSON 解析失败',
       }
     }
-  }, [input, rootClassName, useLombok, useWrapper, jsonProperty])
+  }, [input, rootClassName, useLombok, useWrapper, annotation])
 
   const copy = async () => {
     if (!output) {
@@ -94,15 +94,17 @@ export default function JsonToJava() {
           />
           包装类型
         </label>
-        <label className="flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
-          <input
-            type="checkbox"
-            checked={jsonProperty}
-            onChange={(e) => setJsonProperty(e.target.checked)}
-            className="h-4 w-4 accent-brand-600"
-          />
-          属性注解
-          <span className="text-xs text-slate-400">(JsonProperty/JSONField)</span>
+        <label className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+          注解
+          <select
+            value={annotation}
+            onChange={(e) => setAnnotation(e.target.value as AnnotationType)}
+            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-sm outline-none focus:border-brand-500 dark:border-slate-700 dark:bg-slate-800"
+          >
+            <option value="none">不加</option>
+            <option value="jackson">Jackson @JsonProperty</option>
+            <option value="fastjson">fastjson @JSONField</option>
+          </select>
         </label>
         <button
           onClick={() => setInput(SAMPLE)}
