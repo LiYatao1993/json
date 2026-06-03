@@ -159,6 +159,52 @@ export function RefreshIcon(props: IconProps) {
   )
 }
 
+export function CodeIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="m16 18 6-6-6-6M8 6l-6 6 6 6" />
+    </svg>
+  )
+}
+
+export function LinkIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5" />
+      <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19" />
+    </svg>
+  )
+}
+
+export function ClockIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  )
+}
+
+export function QrIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <path d="M14 14h3v3M21 14v7h-7M17 21h.01M21 17h.01" />
+    </svg>
+  )
+}
+
+export function RegexIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <path d="M17 3v10M12.5 5.5l9 5M21.5 5.5l-9 5" />
+      <circle cx="6.5" cy="17.5" r="2.5" />
+    </svg>
+  )
+}
+
 export function GithubIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

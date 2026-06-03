@@ -1,9 +1,22 @@
 import { lazy } from 'react'
 import type { ComponentType, LazyExoticComponent } from 'react'
 import type { SVGProps } from 'react'
-import { BracesIcon, KeyIcon } from '../components/icons'
+import {
+  BracesIcon,
+  ClockIcon,
+  CodeIcon,
+  KeyIcon,
+  LinkIcon,
+  QrIcon,
+  RegexIcon,
+} from '../components/icons'
 
-export type ToolCategory = '编码 / 格式' | '文本处理' | '生成 / 安全' | '其它'
+export type ToolCategory =
+  | '编码 / 格式'
+  | '文本处理'
+  | '转换 / 计算'
+  | '生成 / 安全'
+  | '其它'
 
 export interface Tool {
   /** 唯一标识，同时用于路由路径 /tools/:id */
@@ -40,6 +53,42 @@ export const tools: Tool[] = [
     component: lazy(() => import('./json-formatter/JsonFormatter')),
   },
   {
+    id: 'base64',
+    name: 'Base64 编解码',
+    description: '文本与 Base64 互转，支持图片转 Base64（Data URL）。',
+    category: '编码 / 格式',
+    keywords: ['base64', 'encode', 'decode', '编码', '解码', '图片'],
+    icon: CodeIcon,
+    component: lazy(() => import('./base64/Base64Tool')),
+  },
+  {
+    id: 'url-codec',
+    name: 'URL 编解码',
+    description: 'encodeURIComponent / decodeURIComponent，可选整段 URL 模式。',
+    category: '编码 / 格式',
+    keywords: ['url', 'uri', 'encode', 'decode', '编码', '解码', '转义'],
+    icon: LinkIcon,
+    component: lazy(() => import('./url-codec/UrlCodec')),
+  },
+  {
+    id: 'timestamp',
+    name: '时间戳转换',
+    description: '时间戳与日期互转，自动识别秒 / 毫秒，含本地、UTC、ISO。',
+    category: '转换 / 计算',
+    keywords: ['timestamp', 'time', 'date', '时间戳', '日期', 'unix'],
+    icon: ClockIcon,
+    component: lazy(() => import('./timestamp/TimestampTool')),
+  },
+  {
+    id: 'regex-tester',
+    name: '正则表达式测试',
+    description: '实时匹配高亮，支持多种标志位与分组捕获展示。',
+    category: '文本处理',
+    keywords: ['regex', 'regexp', '正则', '匹配', '测试'],
+    icon: RegexIcon,
+    component: lazy(() => import('./regex-tester/RegexTester')),
+  },
+  {
     id: 'password-generator',
     name: '密码生成器',
     description: '生成随机、易记或 PIN 类型的强密码，可调长度与字符集。',
@@ -47,6 +96,15 @@ export const tools: Tool[] = [
     keywords: ['password', 'generator', '密码', '生成', 'pin', '随机'],
     icon: KeyIcon,
     component: lazy(() => import('./password-generator/PasswordGenerator')),
+  },
+  {
+    id: 'qrcode',
+    name: '二维码生成',
+    description: '把文本或链接生成二维码，可调尺寸、容错级别与颜色，支持下载。',
+    category: '生成 / 安全',
+    keywords: ['qrcode', 'qr', '二维码', '生成'],
+    icon: QrIcon,
+    component: lazy(() => import('./qrcode/QrCodeTool')),
   },
 ]
 
