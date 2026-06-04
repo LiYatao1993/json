@@ -7,6 +7,7 @@ import {
   ClockIcon,
   CodeIcon,
   CoffeeIcon,
+  ImageIcon,
   KeyIcon,
   LinkIcon,
   QrIcon,
@@ -89,6 +90,15 @@ export const tools: Tool[] = [
     keywords: ['cron', 'crontab', 'quartz', '定时', '表达式', '调度'],
     icon: CalendarIcon,
     component: lazy(() => import('./cron/CronTool')),
+  },
+  {
+    id: 'image-compress',
+    name: '图片压缩',
+    description: '本地压缩图片并转换格式（JPEG/PNG/WebP），可调质量与缩放。',
+    category: '转换 / 计算',
+    keywords: ['image', 'compress', '图片', '压缩', 'webp', '格式转换'],
+    icon: ImageIcon,
+    component: lazy(() => import('./image-compress/ImageCompress')),
   },
   {
     id: 'timestamp',
