@@ -159,6 +159,16 @@ export function RefreshIcon(props: IconProps) {
   )
 }
 
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M3 10h18M8 2v4M16 2v4" />
+      <path d="M12 14v3M10.5 15.5h3" />
+    </svg>
+  )
+}
+
 export function CoffeeIcon(props: IconProps) {
   return (
     <svg {...base(props)}>

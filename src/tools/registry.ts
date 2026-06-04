@@ -3,6 +3,7 @@ import type { ComponentType, LazyExoticComponent } from 'react'
 import type { SVGProps } from 'react'
 import {
   BracesIcon,
+  CalendarIcon,
   ClockIcon,
   CodeIcon,
   CoffeeIcon,
@@ -79,6 +80,15 @@ export const tools: Tool[] = [
     keywords: ['url', 'uri', 'encode', 'decode', '编码', '解码', '转义'],
     icon: LinkIcon,
     component: lazy(() => import('./url-codec/UrlCodec')),
+  },
+  {
+    id: 'cron',
+    name: 'Cron 表达式',
+    description: '可视化生成与校验 Cron，支持 5/6 段、中文说明与下次执行时间预览。',
+    category: '转换 / 计算',
+    keywords: ['cron', 'crontab', 'quartz', '定时', '表达式', '调度'],
+    icon: CalendarIcon,
+    component: lazy(() => import('./cron/CronTool')),
   },
   {
     id: 'timestamp',
